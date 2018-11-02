@@ -179,7 +179,7 @@ class AnimView: UIView {
     var touchPath: UIBezierPath = UIBezierPath()
     var internalTouchPath: UIBezierPath = UIBezierPath()
 
-    var dotsLayers: [CAShapeLayer] = []
+    var dotsLayers: [JPShapeLayer] = []
 
     var userDotPath = UIBezierPath()
     var userDotLayer = CAShapeLayer()
@@ -263,14 +263,19 @@ class AnimView: UIView {
     }
 
     func setDotsColor(using degree: CGFloat) {
+        var tempLayer: JPShapeLayer?
         for (index,dot) in model.dotsPositions.enumerated() {
             if dot.dotAngle < degree {
-                dotsLayers[index].fillColor = model.config.userDotColor.cgColor
-                dotsLayers[index].strokeColor = model.config.userDotColor.cgColor
+                tempLayer = dotsLayers[index]
             } else {
                 dotsLayers[index].fillColor = model.config.mainDotsColor.cgColor
                 dotsLayers[index].strokeColor = model.config.mainDotsColor.cgColor
             }
+        }
+        if let tempLayer = tempLayer, !tempLayer.isHighlighted {
+            tempLayer.fillColor = model.config.userDotColor.cgColor
+            tempLayer.strokeColor = model.config.userDotColor.cgColor
+            dotAnimation(tempLayer)
         }
     }
 
@@ -286,7 +291,7 @@ class AnimView: UIView {
                                  startAngle: model.config.startPosition,
                                  endAngle: model.config.endPosition,
                                  clockwise: true)
-        UIColor.clear.setStroke()
+        UIColor.red.setStroke()
         touchPath.lineWidth = 1
         internalTouchPath.lineWidth = 1
         internalTouchPath.stroke()
@@ -372,8 +377,8 @@ class AnimView: UIView {
         }
         dotsLayers.removeAll()
         for dot in model.dotsPositions {
-            let dotLayer = CAShapeLayer()
-            let temp = UIBezierPath(arcCenter: dot.position,
+            let dotLayer = JPShapeLayer()
+            let temp = UIBezierPath(arcCenter: CGPoint.zero,
                                     radius: dot.size / 2,
                                     startAngle: model.config.startPosition,
                                     endAngle: model.config.endPosition,
@@ -382,6 +387,7 @@ class AnimView: UIView {
             dotLayer.fillColor = model.config.mainDotsColor.cgColor
             dotLayer.strokeColor = model.config.mainDotsColor.cgColor
             dotLayer.lineWidth = model.config.mainStrokeWidth
+            dotLayer.position = dot.position
             layer.insertSublayer(dotLayer, below: userDotLayer)
             dotsLayers.append(dotLayer)
         }
@@ -431,16 +437,28 @@ extension AnimView {
             layer.transform = CATransform3DMakeScale(1, 1, 1)
         }
 
-        print("animating")
         let springAnimation = CASpringAnimation(keyPath: "transform.scale")
         springAnimation.fromValue = touched ? 1 : 2
         springAnimation.toValue = touched ? 2 : 1
         springAnimation.duration = 0.5
-//        springAnimation.initialVelocity = 0.5
-//        springAnimation.damping = 0.3
         springAnimation.isRemovedOnCompletion = false
         springAnimation.autoreverses = false
         layer.add(springAnimation, forKey: "sprint")
-
     }
+
+    func dotAnimation(_ dot: CAShapeLayer) {
+        let springAnimation = CASpringAnimation(keyPath: "transform.scale")
+        springAnimation.fromValue = 1
+        springAnimation.toValue = 2
+        springAnimation.duration = 0.1
+        springAnimation.isRemovedOnCompletion = true
+        springAnimation.autoreverses = true
+        dot.add(springAnimation, forKey: "sprint")
+    }
+}
+
+// MARK: - Custom Shape Layer
+
+class JPShapeLayer: CAShapeLayer {
+    var isHighlighted = false
 }
