@@ -34,7 +34,7 @@ struct JPViewConfig {
     var padding: CGFloat = 32
     var smallDotSize: CGFloat = 2
     var bigDotSize: CGFloat = 8
-    var touchPadding: CGFloat = 30
+    var touchPadding: CGFloat = 40
     var movingDiff: CGFloat = 1
     var startPosition: CGFloat =  0
     var endPosition: CGFloat = CGFloat.pi*2
@@ -42,7 +42,7 @@ struct JPViewConfig {
     var userStrokeColor: UIColor = .green
     var userStrokeShadowColor: UIColor = .red
     var userStrokeWidth: CGFloat = 1
-    var userDotSize: CGFloat = 12
+    var userDotSize: CGFloat = 16
     var userDotColor: UIColor = .green
     var userDotShadowRadius: CGFloat = 8
 
@@ -270,11 +270,13 @@ class AnimView: UIView {
             } else {
                 dotsLayers[index].fillColor = model.config.mainDotsColor.cgColor
                 dotsLayers[index].strokeColor = model.config.mainDotsColor.cgColor
+                dotsLayers[index].isHighlighted = false
             }
         }
         if let tempLayer = tempLayer, !tempLayer.isHighlighted {
             tempLayer.fillColor = model.config.userDotColor.cgColor
             tempLayer.strokeColor = model.config.userDotColor.cgColor
+            tempLayer.isHighlighted = true
             dotAnimation(tempLayer)
         }
     }
@@ -449,8 +451,8 @@ extension AnimView {
     func dotAnimation(_ dot: CAShapeLayer) {
         let springAnimation = CASpringAnimation(keyPath: "transform.scale")
         springAnimation.fromValue = 1
-        springAnimation.toValue = 2
-        springAnimation.duration = 0.1
+        springAnimation.toValue = 3
+        springAnimation.duration = 0.15
         springAnimation.isRemovedOnCompletion = true
         springAnimation.autoreverses = true
         dot.add(springAnimation, forKey: "sprint")
