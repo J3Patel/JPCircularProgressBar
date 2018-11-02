@@ -243,17 +243,8 @@ class AnimView: UIView {
                 let endStroke = deg.radiansToDegrees
                 deg = endStroke.degreesToRadians
 
-                for (index,dot) in model.dotsPositions.enumerated() {
-                    if dot.dotAngle < deg {
-                        dotsLayers[index].fillColor = model.config.userDotColor.cgColor
-                        dotsLayers[index].strokeColor = model.config.userDotColor.cgColor
-                        dotsLayers[index].setNeedsLayout()
+                setDotsColor(using: deg)
 
-                    }
-                }
-//                if model.dotsPositions.first!.dotAngle < deg {
-//                    dotsLayers.first?.fillColor = model.config.userDotColor.cgColor
-//                }
                 let pos = model.positionOnCircle(for: deg)
 
                 userDotLayer.actions = ["position": NSNull()]
@@ -270,6 +261,18 @@ class AnimView: UIView {
             break
         case .failed:
             break
+        }
+    }
+
+    func setDotsColor(using degree: CGFloat) {
+        for (index,dot) in model.dotsPositions.enumerated() {
+            if dot.dotAngle < degree {
+                dotsLayers[index].fillColor = model.config.userDotColor.cgColor
+                dotsLayers[index].strokeColor = model.config.userDotColor.cgColor
+            } else {
+                dotsLayers[index].fillColor = model.config.mainDotsColor.cgColor
+                dotsLayers[index].strokeColor = model.config.mainDotsColor.cgColor
+            }
         }
     }
 
@@ -369,7 +372,7 @@ class AnimView: UIView {
         for layer in dotsLayers {
             layer.removeFromSuperlayer()
         }
-
+        dotsLayers.removeAll()
         for dot in model.dotsPositions {
             let dotLayer = CAShapeLayer()
             let temp = UIBezierPath(arcCenter: dot.position,
