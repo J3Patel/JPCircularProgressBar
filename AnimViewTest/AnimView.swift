@@ -32,8 +32,8 @@ struct JPViewConfig {
     var mainStrokeWidth: CGFloat = 1
     var spacingBetweenDotAndLine: CGFloat = 4
     var padding: CGFloat = 32
-    var smallDotSize: CGFloat = 2
-    var bigDotSize: CGFloat = 8
+    var smallDotSize: CGFloat = 5
+    var bigDotSize: CGFloat = 12
     var touchPadding: CGFloat = 40
     var movingDiff: CGFloat = 80
     var startPosition: CGFloat =  0
@@ -173,7 +173,7 @@ class AnimView: UIView {
     
     // iVars
     var userPath: UIBezierPath = UIBezierPath()
-    var userShapeLayer = CAShapeLayer()
+    var userShapeLayer = JPShapeLayer()
     var touchPath: UIBezierPath = UIBezierPath()
     var internalTouchPath: UIBezierPath = UIBezierPath()
     
@@ -265,11 +265,12 @@ class AnimView: UIView {
                     return
                 }
                 setDotsColor(using: deg)
+                
                 let pos = model.positionOnCircle(for: deg)
                 userDotLayer.actions = ["position": NSNull()]
                 userDotLayer.position = pos
                 userShapeLayer.actions = ["strokeEnd": NSNull()]
-                userShapeLayer.strokeEnd = endStroke/360/2
+                userShapeLayer.strokeEnd = endStroke/360
                 
                 if deg >= userCompleteAngle {
                     userPathCompleted()
@@ -294,7 +295,6 @@ class AnimView: UIView {
     // MARK: Helper methods
     
     func userPathCompleted() {
-        print("UserPathCompleted")
 //        setDotsColor(using: 0)
         didUserCompletedProgress = true
         let pos = model.positionOnCircle(for: model.config.endPosition)
@@ -302,7 +302,7 @@ class AnimView: UIView {
         //        userDotLayer.actions = ["position": NSNull()]
         userDotLayer.position = pos
         //        userShapeLayer.actions = ["strokeEnd": NSNull()]
-        userShapeLayer.strokeEnd = 0.5
+        userShapeLayer.strokeEnd = 1
     }
     
     func angle(for point: CGPoint) -> CGFloat {
@@ -434,12 +434,16 @@ class AnimView: UIView {
         guard let first = model.dotsPositions.first else {
             return
         }
-        userPath.move(to: first.position)
-        userPath.addArc(withCenter: centerPosition,
-                        radius: radius,
-                        startAngle: model.config.startPosition,
-                        endAngle: model.config.endPosition,
-                        clockwise: true)
+        if userShapeLayer.superlayer != nil{
+            userShapeLayer.removeFromSuperlayer()
+        }
+        userShapeLayer = JPShapeLayer()
+//        userPath.move(to: first.position)
+        userPath = UIBezierPath(arcCenter: centerPosition,
+                                radius: radius,
+                                startAngle: model.config.startPosition,
+                                endAngle: model.config.endPosition,
+                                clockwise: true)
         
         userShapeLayer.path = userPath.cgPath
         
@@ -448,8 +452,9 @@ class AnimView: UIView {
         userShapeLayer.fillColor = nil
         userShapeLayer.strokeColor = model.config.userStrokeColor.cgColor
         userShapeLayer.lineWidth = model.config.userStrokeWidth
-        
+
         for (index, lineDash) in model.lineDashPattern.enumerated() {
+            
             if index == 0 {
                 userShapeLayer.lineDashPhase = -lineDash
             } else {
