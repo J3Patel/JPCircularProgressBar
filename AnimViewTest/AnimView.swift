@@ -214,22 +214,18 @@ class AnimView: UIView {
     func setup() {
         model.delegate = self
 
-        panGesture = UIPanGestureRecognizer(target: self,
-                                            action: #selector(didPan(gesture:)))
-        self.addGestureRecognizer(panGesture!)
+//        panGesture = UIPanGestureRecognizer(target: self,
+//                                            action: #selector(didPan(gesture:)))
+//        self.addGestureRecognizer(panGesture!)
     }
 
-    @objc func didPan(gesture: UIPanGestureRecognizer) {
-        let position = gesture.location(in: self)
-        switch gesture.state {
-        case .began:
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        animate(userDotLayer, state: false)
+    }
 
-            break
-        case .cancelled:
-
-            break
-        case .changed:
-
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let pos = touches.first {
+            let position = pos.location(in: self)
             let t = touchPath.cgPath.contains(position,
                                               using: CGPathFillRule.winding,
                                               transform: CGAffineTransform.identity)
@@ -253,15 +249,17 @@ class AnimView: UIView {
                 userShapeLayer.strokeEnd = endStroke/360/2
 
             }
-
-            break
-        case .ended:
-            break
-        case .possible:
-            break
-        case .failed:
-            break
         }
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+//        for touch in touches {
+//            let t = touch.location(in: self)
+
+//            if userDotLayer.contains(t) {
+                animate(userDotLayer, state: true)
+//            }
+//        }
     }
 
     func setDotsColor(using degree: CGFloat) {
@@ -418,5 +416,31 @@ class AnimView: UIView {
 extension AnimView: JPViewModelDelegate {
     func updateUserPath() {
         setNeedsDisplay()
+    }
+}
+
+
+// MARK: - Animation helpers
+
+extension AnimView {
+
+    func animate(_ layer: CAShapeLayer, state touched: Bool) {
+        if touched {
+            layer.transform = CATransform3DMakeScale(2, 2, 1)
+        } else {
+            layer.transform = CATransform3DMakeScale(1, 1, 1)
+        }
+
+        print("animating")
+        let springAnimation = CASpringAnimation(keyPath: "transform.scale")
+        springAnimation.fromValue = touched ? 1 : 2
+        springAnimation.toValue = touched ? 2 : 1
+        springAnimation.duration = 0.5
+//        springAnimation.initialVelocity = 0.5
+//        springAnimation.damping = 0.3
+        springAnimation.isRemovedOnCompletion = false
+        springAnimation.autoreverses = false
+        layer.add(springAnimation, forKey: "sprint")
+
     }
 }
