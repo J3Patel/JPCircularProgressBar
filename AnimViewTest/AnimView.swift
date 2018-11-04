@@ -120,8 +120,6 @@ struct JPViewModel {
                                 : config.smallDotSize)
             dots.append(dot)
             
-            
-            
             startAngle += halfDotAngle(at: dotPosition) + paddingAngle
             
             // substract starting padding and dot size
@@ -185,6 +183,7 @@ class AnimView: UIView {
     var panGesture: UIPanGestureRecognizer?
     var model = JPViewModel()
     var didUserCompletedProgress = false
+    var isMovingClockWise: Bool? = nil
     
     // lazy vars
     lazy var centerPosition = {
@@ -201,8 +200,17 @@ class AnimView: UIView {
     }()
     
     var userCompleteAngle: CGFloat {
+        guard  let isMovingClockWise = isMovingClockWise else {
+            return CGFloat.pi*2
+        }
         //Completes when user moves to last 1 percent
-        return (CGFloat.pi*2) - (CGFloat.pi*2*0.02)
+        let diff = (CGFloat.pi*2*0.02)
+        if isMovingClockWise {
+            return (CGFloat.pi*2) - diff
+        } else {
+//            print(diff)
+            return diff
+        }
     }
     
     override init(frame: CGRect) {
@@ -258,24 +266,51 @@ class AnimView: UIView {
             if t && !t2 && model.distance(userDotLayer.position, position) < model.config.movingDiff {
                 
                 let userDotAngle = angle(for: userDotLayer.position)
-                let deg = angle(for: position)
-                let endStroke = deg.radiansToDegrees
+                var deg = angle(for: position)
                 
-                guard abs(userDotAngle - deg) < 1 else {
+                if isMovingClockWise == nil && abs(deg) > (CGFloat.pi) * 0.05 {
+//                    print(userDotAngle)
+                    isMovingClockWise = deg > 0
+                    drawUserPath()
+                }
+                deg = deg.radiansToDegrees.degreesToRadians
+//
+//                    guard abs(userDotAngle - deg) < 1 else {
+//                        return
+//                    }
+//                }
+                
+                
+
+                setDotsColor(using: deg)
+                let pos = model.positionOnCircle(for: deg)
+                
+                
+                guard let isMovingClockWise = isMovingClockWise else {
                     return
                 }
-                setDotsColor(using: deg)
                 
-                let pos = model.positionOnCircle(for: deg)
                 userDotLayer.actions = ["position": NSNull()]
                 userDotLayer.position = pos
-                userShapeLayer.actions = ["strokeEnd": NSNull()]
-                userShapeLayer.strokeEnd = endStroke/360
                 
-                if deg >= userCompleteAngle {
-                    userPathCompleted()
+                userShapeLayer.actions = ["strokeEnd": NSNull(), "strokeStart": NSNull()]
+                print(deg)
+                if isMovingClockWise {
+                    
+                    userShapeLayer.strokeEnd = deg/(CGFloat.pi*2)
+                    if deg >= userCompleteAngle {
+                        userPathCompleted()
+                    } else {
+                        didUserCompletedProgress = false
+                    }
                 } else {
-                    didUserCompletedProgress = false
+                    
+                    userShapeLayer.strokeEnd = ((CGFloat.pi*2)-(deg))/(CGFloat.pi*2)
+                    if deg <= userCompleteAngle {
+                        userPathCompleted()
+                    } else {
+                        didUserCompletedProgress = false
+                    }
                 }
                 
             } else {
@@ -289,7 +324,8 @@ class AnimView: UIView {
             resetToStartPosition()
         }
         animate(userDotLayer, state: false)
-        
+        isMovingClockWise = nil
+        print("isClockWise is Empty")
     }
     
     // MARK: Helper methods
@@ -307,29 +343,60 @@ class AnimView: UIView {
     
     func angle(for point: CGPoint) -> CGFloat {
         let val = atan2(point.y - centerPosition.y, point.x - centerPosition.x)
-        return val >= 0 ? val : val + (CGFloat.pi*2)
+        return val //>= 0 ? val : val + (CGFloat.pi*2)
     }
     
     func resetToStartPosition() {
-        setDotsColor(using: 0)
+        guard let isMovingClockWise = isMovingClockWise else {
+            return
+        }
+        setDotsColor(using: isMovingClockWise ? model.config.startPosition : model.config.endPosition)
         
-        let pos = model.positionOnCircle(for: 0)
+        let pos = model.positionOnCircle(for: model.config.startPosition)
         
         //        userDotLayer.actions = ["position": NSNull()]
         userDotLayer.position = pos
         //        userShapeLayer.actions = ["strokeEnd": NSNull()]
-        userShapeLayer.strokeEnd = 0
+        userShapeLayer.strokeEnd = model.config.startPosition
     }
     
     func setDotsColor(using degree: CGFloat) {
         var tempLayer: JPShapeLayer?
-        for (index,dot) in model.dotsPositions.enumerated() {
-            if dot.dotAngle < degree {
-                tempLayer = dotsLayers[index]
-            } else {
-                dotsLayers[index].fillColor = model.config.mainDotsColor.cgColor
-                dotsLayers[index].strokeColor = model.config.mainDotsColor.cgColor
-                dotsLayers[index].isHighlighted = false
+        guard let isMovingClockWise = isMovingClockWise else {
+            return
+        }
+        
+        if isMovingClockWise {
+            for (index,dot) in model.dotsPositions.enumerated() {
+                if dot.dotAngle < degree {
+                    tempLayer = dotsLayers[index]
+                } else {
+                    dotsLayers[index].fillColor = model.config.mainDotsColor.cgColor
+                    dotsLayers[index].strokeColor = model.config.mainDotsColor.cgColor
+                    dotsLayers[index].isHighlighted = false
+                }
+            }
+        } else {
+            var tempLayers: [JPShapeLayer] = dotsLayers
+            let t = tempLayers.removeFirst()
+            tempLayers.append(t)
+            tempLayers = tempLayers.reversed()
+            
+            var tempDotsPos: [JPPoint] = model.dotsPositions
+            let d = tempDotsPos.removeFirst()
+            tempDotsPos.append(d)
+            for (index,dot) in tempDotsPos.reversed().enumerated() {
+                var newDot = dot
+                if newDot.dotAngle == 0 {
+                    newDot.dotAngle = CGFloat.pi*2
+                }
+                if newDot.dotAngle > degree {
+                    tempLayer = tempLayers[index]
+                } else {
+                    tempLayers[index].fillColor = model.config.mainDotsColor.cgColor
+                    tempLayers[index].strokeColor = model.config.mainDotsColor.cgColor
+                    tempLayers[index].isHighlighted = false
+                }
             }
         }
         if let tempLayer = tempLayer, !tempLayer.isHighlighted {
@@ -430,20 +497,15 @@ class AnimView: UIView {
     }
     
     func drawUserPath() {
-        print("drawinggg")
-        guard let first = model.dotsPositions.first else {
-            return
-        }
         if userShapeLayer.superlayer != nil{
             userShapeLayer.removeFromSuperlayer()
         }
         userShapeLayer = JPShapeLayer()
-//        userPath.move(to: first.position)
         userPath = UIBezierPath(arcCenter: centerPosition,
                                 radius: radius,
                                 startAngle: model.config.startPosition,
                                 endAngle: model.config.endPosition,
-                                clockwise: true)
+                                clockwise: isMovingClockWise ?? true)
         
         userShapeLayer.path = userPath.cgPath
         
