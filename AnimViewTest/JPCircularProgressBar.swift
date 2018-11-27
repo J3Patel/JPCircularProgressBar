@@ -1,6 +1,6 @@
 //
-//  AnimView.swift
-//  AnimViewTest
+//  JPCircularProgressBar.swift
+//  JPCircularProgressBarTest
 //
 //  Created by MP-11 on 01/11/18.
 //  Copyright © 2018 Jatin. All rights reserved.
@@ -9,6 +9,9 @@
 import Foundation
 import UIKit
 
+protocol JPCircularProgressBarDelegate: class {
+    func userDidFinishedPath(cloclwise: Bool)
+}
 
 extension FloatingPoint {
     var degreesToRadians: Self {
@@ -167,31 +170,40 @@ struct JPViewModel {
     }
 }
 
-class AnimView: UIView {
+class JPCircularProgressBar: UIView {
     
     // iVars
-    var userPath: UIBezierPath = UIBezierPath()
-    var userShapeLayer = JPShapeLayer()
-    var touchPath: UIBezierPath = UIBezierPath()
-    var internalTouchPath: UIBezierPath = UIBezierPath()
+    private var userPath: UIBezierPath = UIBezierPath()
+    private var userShapeLayer = JPShapeLayer()
+    private var touchPath: UIBezierPath = UIBezierPath()
+    private var internalTouchPath: UIBezierPath = UIBezierPath()
+    weak var delegate: JPCircularProgressBarDelegate?
     
-    var dotsLayers: [JPShapeLayer] = []
+    private var dotsLayers: [JPShapeLayer] = []
     
-    var userDotPath = UIBezierPath()
-    var userDotLayer = CAShapeLayer()
+    private var userDotPath = UIBezierPath()
+    private var userDotLayer = CAShapeLayer()
     
-    var panGesture: UIPanGestureRecognizer?
-    var model = JPViewModel()
-    var didUserCompletedProgress = false
-    var isMovingClockWise: Bool? = nil
+    private var panGesture: UIPanGestureRecognizer?
+    private var model = JPViewModel()
+    private var didUserCompletedProgress = false
+    private var isMovingClockWise: Bool? = nil
+    private var areAllDotsReached: Bool {
+        for dot in dotsLayers {
+            if !dot.isHighlighted {
+                return false
+            }
+        }
+        return true
+    }
     
     // lazy vars
-    lazy var centerPosition = {
+    internal lazy var centerPosition = {
         return CGPoint(x: self.bounds.size.width / 2,
                        y: self.bounds.size.height / 2)
     }()
     
-    lazy var radius: CGFloat = {
+    internal lazy var radius: CGFloat = {
         return (self.bounds.size.width / 2) - model.config.padding
     }()
     
@@ -208,7 +220,6 @@ class AnimView: UIView {
         if isMovingClockWise {
             return (CGFloat.pi*2) - diff
         } else {
-//            print(diff)
             return diff
         }
     }
@@ -265,23 +276,13 @@ class AnimView: UIView {
             
             if t && !t2 && model.distance(userDotLayer.position, position) < model.config.movingDiff {
                 
-                let userDotAngle = angle(for: userDotLayer.position)
                 var deg = angle(for: position)
                 
                 if isMovingClockWise == nil && abs(deg) > (CGFloat.pi) * 0.05 {
-//                    print(userDotAngle)
                     isMovingClockWise = deg > 0
                     drawUserPath()
                 }
                 deg = deg.radiansToDegrees.degreesToRadians
-//
-//                    guard abs(userDotAngle - deg) < 1 else {
-//                        return
-//                    }
-//                }
-                
-                
-
                 setDotsColor(using: deg)
                 let pos = model.positionOnCircle(for: deg)
                 
@@ -294,11 +295,10 @@ class AnimView: UIView {
                 userDotLayer.position = pos
                 
                 userShapeLayer.actions = ["strokeEnd": NSNull(), "strokeStart": NSNull()]
-                print(deg)
                 if isMovingClockWise {
                     
                     userShapeLayer.strokeEnd = deg/(CGFloat.pi*2)
-                    if deg >= userCompleteAngle {
+                    if deg >= userCompleteAngle && areAllDotsReached {
                         userPathCompleted()
                     } else {
                         didUserCompletedProgress = false
@@ -306,7 +306,7 @@ class AnimView: UIView {
                 } else {
                     
                     userShapeLayer.strokeEnd = ((CGFloat.pi*2)-(deg))/(CGFloat.pi*2)
-                    if deg <= userCompleteAngle {
+                    if deg <= userCompleteAngle && areAllDotsReached {
                         userPathCompleted()
                     } else {
                         didUserCompletedProgress = false
@@ -325,20 +325,17 @@ class AnimView: UIView {
         }
         animate(userDotLayer, state: false)
         isMovingClockWise = nil
-        print("isClockWise is Empty")
     }
     
     // MARK: Helper methods
     
     func userPathCompleted() {
-//        setDotsColor(using: 0)
         didUserCompletedProgress = true
         let pos = model.positionOnCircle(for: model.config.endPosition)
-        
-        //        userDotLayer.actions = ["position": NSNull()]
         userDotLayer.position = pos
-        //        userShapeLayer.actions = ["strokeEnd": NSNull()]
         userShapeLayer.strokeEnd = 1
+        isUserInteractionEnabled = false
+        delegate?.userDidFinishedPath(cloclwise: isMovingClockWise ?? true)
     }
     
     func angle(for point: CGPoint) -> CGFloat {
@@ -353,10 +350,7 @@ class AnimView: UIView {
         setDotsColor(using: isMovingClockWise ? model.config.startPosition : model.config.endPosition)
         
         let pos = model.positionOnCircle(for: model.config.startPosition)
-        
-        //        userDotLayer.actions = ["position": NSNull()]
         userDotLayer.position = pos
-        //        userShapeLayer.actions = ["strokeEnd": NSNull()]
         userShapeLayer.strokeEnd = model.config.startPosition
     }
     
@@ -534,16 +528,15 @@ class AnimView: UIView {
     }
 }
 
-extension AnimView: JPViewModelDelegate {
+extension JPCircularProgressBar: JPViewModelDelegate {
     func updateUserPath() {
         setNeedsDisplay()
     }
 }
 
-
 // MARK: - Animation helpers
 
-extension AnimView {
+extension JPCircularProgressBar {
     
     func animate(_ layer: CAShapeLayer, state touched: Bool) {
         if touched {

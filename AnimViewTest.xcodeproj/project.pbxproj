@@ -12,7 +12,7 @@
 		ADA67A07218B764600ADB9E2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ADA67A05218B764600ADB9E2 /* Main.storyboard */; };
 		ADA67A09218B765C00ADB9E2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADA67A08218B765C00ADB9E2 /* Assets.xcassets */; };
 		ADA67A0C218B765C00ADB9E2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ADA67A0A218B765C00ADB9E2 /* LaunchScreen.storyboard */; };
-		ADA67A14218B76A700ADB9E2 /* AnimView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA67A13218B76A700ADB9E2 /* AnimView.swift */; };
+		ADA67A14218B76A700ADB9E2 /* JPCircularProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA67A13218B76A700ADB9E2 /* JPCircularProgressBar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,7 +23,7 @@
 		ADA67A08218B765C00ADB9E2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ADA67A0B218B765C00ADB9E2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ADA67A0D218B765C00ADB9E2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		ADA67A13218B76A700ADB9E2 /* AnimView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimView.swift; sourceTree = "<group>"; };
+		ADA67A13218B76A700ADB9E2 /* JPCircularProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JPCircularProgressBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,7 +62,7 @@
 				ADA67A08218B765C00ADB9E2 /* Assets.xcassets */,
 				ADA67A0A218B765C00ADB9E2 /* LaunchScreen.storyboard */,
 				ADA67A0D218B765C00ADB9E2 /* Info.plist */,
-				ADA67A13218B76A700ADB9E2 /* AnimView.swift */,
+				ADA67A13218B76A700ADB9E2 /* JPCircularProgressBar.swift */,
 			);
 			path = AnimViewTest;
 			sourceTree = "<group>";
@@ -140,7 +140,7 @@
 			files = (
 				ADA67A04218B764600ADB9E2 /* ViewController.swift in Sources */,
 				ADA67A02218B764600ADB9E2 /* AppDelegate.swift in Sources */,
-				ADA67A14218B76A700ADB9E2 /* AnimView.swift in Sources */,
+				ADA67A14218B76A700ADB9E2 /* JPCircularProgressBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,13 +286,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3W3L2JUAK2;
+				DEVELOPMENT_TEAM = BDCKS7LU4Q;
 				INFOPLIST_FILE = AnimViewTest/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jatin.jpLadingView;
+				PRODUCT_BUNDLE_IDENTIFIER = com.innit.mealbuilder;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -307,13 +307,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3W3L2JUAK2;
+				DEVELOPMENT_TEAM = BDCKS7LU4Q;
 				INFOPLIST_FILE = AnimViewTest/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jatin.jpLadingView;
+				PRODUCT_BUNDLE_IDENTIFIER = com.innit.mealbuilder;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
